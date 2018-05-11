@@ -1,6 +1,36 @@
 import random
 import copy
 
+import vapory
+
+
+def hex2rgb(hex):
+    return tuple(float(int(hex[i:i+2], 16))/255.0 for i in (0, 2 ,4))
+
+
+# brick sizes
+# http://lego.wikia.com/wiki/Brick#Sizes
+# http://lego.wikia.com/wiki/Colour_Palette
+HEIGHT_TO_WIDTH_RATIO = 1.2
+DOT_RADIUS = (1 - HEIGHT_TO_WIDTH_RATIO/3) / 2
+DOT_HEIGHT = 0.2
+COLORS = [
+    "ff0000",
+    "1c58a7",
+    "Ffff00",
+    "9C9291",
+    "0000ff",
+    "00ff00",
+    "ff6600",
+    "95B90B",
+    "002541",
+    "80081B",
+    "7b5d41",
+    "990066",
+]
+COLORS = [hex2rgb(hex) for hex in COLORS]
+
+
 class Bucket(object):
     def __init__(self):
         # store width,height,ratio triplets for all legos in the bucket
@@ -49,6 +79,9 @@ class Contraption(object):
         # footprint stores a list of all x,y coordinates that are occupied
         self.footprint = set()
 
+        # render the pieces
+        self.render_objects = []
+
     def __repr__(self):
         s = ''
         for y in reversed(range(self.Y)):
@@ -69,7 +102,29 @@ class Contraption(object):
                     raise 'that shouldnt happen'
                 self.space[x][y][z] = True
                 self.footprint.add((x, y))
+
+        # render the bricks
+        color = COLORS[self.n_bricks % len(COLORS)]
+        self.render_objects.append(vapory.Box(
+            [x0-0.5, (z - 1) * HEIGHT_TO_WIDTH_RATIO, y0-0.5],
+            [x1-0.5, z * HEIGHT_TO_WIDTH_RATIO, y1-0.5],
+            vapory.Texture(
+                vapory.Pigment('color', color),
+            ),
+        ))
+        for x in range(x0, x1):
+            for y in range(y0, y1):
+                self.render_objects.append(vapory.Cylinder(
+                    [x, z * HEIGHT_TO_WIDTH_RATIO, y],
+                    [x, z * HEIGHT_TO_WIDTH_RATIO + DOT_HEIGHT, y],
+                    DOT_RADIUS,
+                    vapory.Texture(
+                        vapory.Pigment('color', color),
+                    ),
+                ))
+
         self.n_bricks += 1
+
 
     def max_z(self, x, y):
         # TODO: bisection OR smarter data structures
@@ -141,7 +196,61 @@ class Contraption(object):
                 print("=" * 70, w, h)
                 print(contraption)
 
+    def center_of_mass(self):
+        xc, yc, zc = 0.0, 0.0, 0.0
+        n = 0
+        for x in range(self.X):
+            for y in range(self.Y):
+                for z in range(self.Z):
+                    if self.space[x][y][z]:
+                        xc += x
+                        yc += y
+                        zc += z
+                        n += 1
+        xc /= n
+        yc /= n
+        zc /= n
+        return xc, yc, zc
+
+    def render(self, filename='contraption.png', width=300, height=300,
+               antialiasing=0.001):
+
+        # add the background color and light sources
+        self.render_objects.extend([
+            vapory.Background("color", [77./255, 149./255, 232./255]),
+            vapory.LightSource(
+                [0, 0, 0],
+                'color',[1, 1, 1],
+                'translate', [-100, 100, 100],
+            ),
+            vapory.LightSource(
+                [0, 0, 0],
+                'color', [0.5, 0.5, 0.5],
+                'translate', [100, -50, 50]
+            ),
+        ])
+
+        # place the camera
+        # TODO tailor location, look_at based on location of things
+        xc, yc, zc = self.center_of_mass()
+        camera = vapory.Camera(
+            'location',  [xc+10, zc+8, yc+10], #0.0, 0.5, -4.0],
+            # 'direction', [0, 0, 1.5],
+            'look_at',  [xc, zc, yc],
+        )
+
+        # render the scene
+        scene = vapory.Scene(camera, objects=self.render_objects)
+        scene.render(
+            filename, width=width, height=height, antialiasing=antialiasing,
+        )
+
+
+
+
 if __name__ == '__main__':
     bucket = Bucket()
     contraption = Contraption()
-    contraption.randomly_assemble(bucket, n_pieces=20, verbose=True)
+    # contraption.randomly_assemble(bucket, n_pieces=20, verbose=True)
+    contraption.randomly_assemble(bucket, n_pieces=20)
+    contraption.render()

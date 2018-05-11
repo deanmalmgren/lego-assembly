@@ -17,7 +17,7 @@ for universe in range(n_universes):
 
     w1, w2, h = contraption.dimensions()
     d = contraption.density()
-    print w1, w2, h, d
+    print(w1, w2, h, d)
 
     # contraption = randomly_assemble_legos(n_pieces)
     # print contraption.width(), contraption.height()
