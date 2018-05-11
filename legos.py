@@ -156,14 +156,15 @@ class Contraption(object):
         for x, y in self.footprint:
             if x + w < self.X and y + h < self.Y:
                 xys_with_adjascent.add((x, y))
-                if x - 1 > 0:
-                    xys_with_adjascent.add((x - 1, y))
-                if x + 1 < self.X:
-                    xys_with_adjascent.add((x + 1, y))
-                if y - 1 > 0:
-                    xys_with_adjascent.add((x, y - 1))
-                if y + 1 < self.Y:
-                    xys_with_adjascent.add((x, y + 1))
+                if self.space[x][y][0]:
+                    if x - 1 > 0:
+                        xys_with_adjascent.add((x - 1, y))
+                    if x + 1 < self.X:
+                        xys_with_adjascent.add((x + 1, y))
+                    if y - 1 > 0:
+                        xys_with_adjascent.add((x, y - 1))
+                    if y + 1 < self.Y:
+                        xys_with_adjascent.add((x, y + 1))
         return random.choice(list(xys_with_adjascent))
 
     def randomly_place_brick_down(self, w, h):
@@ -244,8 +245,6 @@ class Contraption(object):
         scene.render(
             filename, width=width, height=height, antialiasing=antialiasing,
         )
-
-
 
 
 if __name__ == '__main__':
