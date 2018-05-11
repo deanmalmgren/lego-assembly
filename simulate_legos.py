@@ -6,9 +6,18 @@ import legos
 
 
 # parse command line arguments
-n_pieces = 50
-n_universes = 1000
+n_pieces = 10
+n_universes = 10
 
+bucket = legos.Bucket()
 for universe in range(n_universes):
-    contraption = randomly_assemble_legos(n_pieces)
-    print contraption.width(), contraption.height()
+    contraption = legos.Contraption()
+
+    contraption.randomly_assemble(n_pieces)
+
+    w1, w2, h = contraption.dimensions()
+    d = contraption.density()
+    print w1, w2, h, d
+
+    # contraption = randomly_assemble_legos(n_pieces)
+    # print contraption.width(), contraption.height()
