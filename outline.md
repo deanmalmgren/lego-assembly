@@ -31,8 +31,6 @@ not me. that's right, i studied math and engineering in undergrad and grad schoo
 
 ## everything i've ever learned has been through simulations of toy models
 
-
-
 coin flip example -> more better-er
 
 random walks -> BD pitch to Dialog Tech CFO... meh?

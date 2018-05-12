@@ -190,7 +190,7 @@ class Contraption(object):
             self.place_brick(x0, y0, x0+w, y0+h, z+1)
 
     def randomly_assemble(self, bucket, n_pieces=10, verbose=False,
-                          render=False):
+                          render=False, **kwargs):
         for i in range(n_pieces):
             w, h = bucket.random_brick()
             self.randomly_place_brick_on_top(w, h)
@@ -198,7 +198,7 @@ class Contraption(object):
                 print("=" * 70, w, h)
                 print(contraption)
             if render:
-                self.render(filename="contraption-%03d.png" % i)
+                self.render(filename="contraption-%03d.png" % i, **kwargs)
 
     def center_of_mass(self):
         xc, yc, zc = 0.0, 0.0, 0.0
@@ -221,6 +221,7 @@ class Contraption(object):
 
         # place the camera
         xc, yc, zc = self.center_of_mass()
+        # x0, y0, z0, x1, y1, z1 = self.bounding_box()
         camera = vapory.Camera(
             'location', [xc+10, zc+20, yc+10],
             'look_at',  [xc, zc, yc],
@@ -255,8 +256,23 @@ class Contraption(object):
 
 if __name__ == '__main__':
     bucket = Bucket()
-    contraption = Contraption()
+
+    # # DEBUG command line printing of assembly
+    # contraption = Contraption()
     # contraption.randomly_assemble(bucket, n_pieces=20, verbose=True)
-    # contraption.randomly_assemble(bucket, n_pieces=20, render=True)
+
+    # DEBUG generate an aseembly and then render final image
+    contraption = Contraption()
     contraption.randomly_assemble(bucket, n_pieces=20)
     contraption.render()
+
+    # # DEBUG generate sequence of images during build
+    # contraption = Contraption()
+    # contraption.randomly_assemble(bucket, n_pieces=20, render=True)
+    # contraption.randomly_assemble(bucket, n_pieces=20, render=True, width=1920, height=1080)
+
+    # # DEBUG print out many contraptions
+    # for i in range(10):
+    #     contraption = Contraption()
+    #     contraption.randomly_assemble(bucket, n_pieces=20)
+    #     contraption.render(filename="contraption-sm-%03d.png" % i)
