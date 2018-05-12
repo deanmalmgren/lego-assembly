@@ -181,12 +181,12 @@ class Contraption(object):
 
         else:
             w, h = self.randomly_flip_brick(w, h)
-            x0, y0 = self.random_x0_y0_on_top(w, h)
             try:
-                z = self.max_z_in_area(x0, y0, x0+w, y0+h)
+                x0, y0 = self.random_x0_y0_on_top(w, h)
             except:
-                print('FUCK', x0, y0, w, h)
-                raise
+                print('FUCK', w, h)
+                print('FUCK', self.footprint)
+            z = self.max_z_in_area(x0, y0, x0+w, y0+h)
             self.place_brick(x0, y0, x0+w, y0+h, z+1)
 
     def randomly_assemble(self, bucket, n_pieces=10, verbose=False,
@@ -215,6 +215,26 @@ class Contraption(object):
         yc /= n
         zc /= n
         return xc, yc, zc
+
+    def bounding_box(self):
+        x0 = min(x for x, y in self.footprint)
+        x1 = max(x for x, y in self.footprint)
+        y0 = min(y for x, y in self.footprint)
+        y1 = max(y for x, y in self.footprint)
+        z0 = 0
+        z1 = self.max_z_in_area(x0, y0, x1, y1)
+        return x0, y0, z0, x1, y1, z1
+
+    def density(self):
+        x0, y0, z0, x1, y1, z1 = self.bounding_box()
+        V = (x1 - x0 + 1) * (y1 - y0 + 1) * (z1 - z0 + 1)
+        v = 0.0
+        for x in range(x0, x1 + 1):
+            for y in range(y0, y1 + 1):
+                for z in range(z0, z1 + 1):
+                    if self.space[x][y][z]:
+                        v += 1.0
+        return v / V
 
     def render(self, filename='contraption.png', width=300, height=300,
                antialiasing=0.001):
