@@ -62,11 +62,12 @@ class Bucket(object):
 
 
 class Contraption(object):
-    def __init__(self, X=80, Y=40, Z=20):
+    def __init__(self, X=80, Y=40, Z=20, monochrome=False):
         self.n_bricks = 0
         self.X = X
         self.Y = Y
         self.Z = Z
+        self.monochrome = monochrome
 
         # space stores a 3D representation of whether a particular lego 1x1x1
         # is occupied
@@ -105,8 +106,18 @@ class Contraption(object):
                 self.space[x][y][z] = True
                 self.footprint.add((x, y))
 
-        # render the bricks
+        # pick the color. if monochrome, everything is gray except the current
+        # piece
         color = COLORS[self.n_bricks % len(COLORS)]
+        if self.monochrome:
+            color = COLORS[0]
+            for obj in self.render_objects:
+                if isinstance(obj, vapory.Box):
+                    obj.args[2].args[0].args[1] = GRAY
+                elif isinstance(obj, vapory.Cylinder):
+                    obj.args[3].args[0].args[1] = GRAY
+
+        # render the bricks
         e = EPSILON
         self.render_objects.append(vapory.Box(
             [x0-0.5+e, (z-1)*HEIGHT_TO_WIDTH_RATIO+e, y0-0.5+e],
@@ -282,15 +293,15 @@ if __name__ == '__main__':
     # contraption = Contraption()
     # contraption.randomly_assemble(bucket, n_pieces=20, verbose=True)
 
-    # DEBUG generate an aseembly and then render final image
-    contraption = Contraption()
-    contraption.randomly_assemble(bucket, n_pieces=20)
-    contraption.render(width=1920, height=1080)
-
-    # # DEBUG generate sequence of images during build
+    # # DEBUG generate an aseembly and then render final image
     # contraption = Contraption()
+    # contraption.randomly_assemble(bucket, n_pieces=20)
+    # contraption.render(width=1920, height=1080)
+
+    # DEBUG generate sequence of images during build
+    contraption = Contraption(monochrome=True)
     # contraption.randomly_assemble(bucket, n_pieces=20, render=True)
-    # contraption.randomly_assemble(bucket, n_pieces=20, render=True, width=1920, height=1080)
+    contraption.randomly_assemble(bucket, n_pieces=20, render=True, width=1920, height=1080)
 
     # # DEBUG print out many contraptions
     # for i in range(10):
