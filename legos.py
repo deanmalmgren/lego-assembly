@@ -79,7 +79,7 @@ class Contraption(object):
         # footprint stores a list of all x,y coordinates that are occupied
         self.footprint = set()
 
-        # render the pieces
+        # keep track of all of the pieces
         self.render_objects = []
 
     def __repr__(self):
@@ -189,13 +189,16 @@ class Contraption(object):
                 raise
             self.place_brick(x0, y0, x0+w, y0+h, z+1)
 
-    def randomly_assemble(self, bucket, n_pieces=10, verbose=False):
+    def randomly_assemble(self, bucket, n_pieces=10, verbose=False,
+                          render=False):
         for i in range(n_pieces):
             w, h = bucket.random_brick()
             self.randomly_place_brick_on_top(w, h)
             if verbose:
                 print("=" * 70, w, h)
                 print(contraption)
+            if render:
+                self.render(filename="contraption-%03d.png" % i)
 
     def center_of_mass(self):
         xc, yc, zc = 0.0, 0.0, 0.0
@@ -216,32 +219,35 @@ class Contraption(object):
     def render(self, filename='contraption.png', width=300, height=300,
                antialiasing=0.001):
 
-        # add the background color and light sources
-        self.render_objects.extend([
-            vapory.Background("color", [77./255, 149./255, 232./255]),
-            vapory.LightSource(
-                [0, 0, 0],
-                'color',[1, 1, 1],
-                'translate', [-100, 100, 100],
-            ),
-            vapory.LightSource(
-                [0, 0, 0],
-                'color', [0.5, 0.5, 0.5],
-                'translate', [100, -50, 50]
-            ),
-        ])
-
         # place the camera
-        # TODO tailor location, look_at based on location of things
         xc, yc, zc = self.center_of_mass()
         camera = vapory.Camera(
-            'location',  [xc+10, zc+8, yc+10], #0.0, 0.5, -4.0],
-            # 'direction', [0, 0, 1.5],
+            'location', [xc+10, zc+20, yc+10],
             'look_at',  [xc, zc, yc],
         )
 
+        # create the background
+        background = vapory.Background("color", hex2rgb("B6E0EA"))
+
+        # create the light sources
+        lights = [
+            vapory.LightSource(
+                [xc, zc+30, yc+5],
+                'color',[0.8, 0.8, 0.8],
+                # 'translate', [-10, 100, 100],
+            ),
+            vapory.LightSource(
+                [xc, zc, yc],
+                'color', [0.5, 0.5, 0.5],
+                'translate', [100, 0, 100]
+            ),
+        ]
+
         # render the scene
-        scene = vapory.Scene(camera, objects=self.render_objects)
+        scene = vapory.Scene(
+            camera,
+            objects=self.render_objects + [background] + lights,
+        )
         scene.render(
             filename, width=width, height=height, antialiasing=antialiasing,
         )
@@ -251,5 +257,6 @@ if __name__ == '__main__':
     bucket = Bucket()
     contraption = Contraption()
     # contraption.randomly_assemble(bucket, n_pieces=20, verbose=True)
+    # contraption.randomly_assemble(bucket, n_pieces=20, render=True)
     contraption.randomly_assemble(bucket, n_pieces=20)
     contraption.render()
