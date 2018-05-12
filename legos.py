@@ -11,6 +11,7 @@ def hex2rgb(hex):
 # brick sizes
 # http://lego.wikia.com/wiki/Brick#Sizes
 # http://lego.wikia.com/wiki/Colour_Palette
+EPSILON = 0.01
 HEIGHT_TO_WIDTH_RATIO = 1.2
 DOT_RADIUS = (1 - HEIGHT_TO_WIDTH_RATIO/3) / 2
 DOT_HEIGHT = 0.2
@@ -29,7 +30,8 @@ COLORS = [
     "990066",
 ]
 COLORS = [hex2rgb(hex) for hex in COLORS]
-
+RED = hex2rgb("ff0000")
+GRAY = hex2rgb("9C9291")
 
 class Bucket(object):
     def __init__(self):
@@ -105,9 +107,10 @@ class Contraption(object):
 
         # render the bricks
         color = COLORS[self.n_bricks % len(COLORS)]
+        e = EPSILON
         self.render_objects.append(vapory.Box(
-            [x0-0.5, (z - 1) * HEIGHT_TO_WIDTH_RATIO, y0-0.5],
-            [x1-0.5, z * HEIGHT_TO_WIDTH_RATIO, y1-0.5],
+            [x0-0.5+e, (z-1)*HEIGHT_TO_WIDTH_RATIO+e, y0-0.5+e],
+            [x1-0.5-e, z*HEIGHT_TO_WIDTH_RATIO-e, y1-0.5-e],
             vapory.Texture(
                 vapory.Pigment('color', color),
             ),
@@ -153,18 +156,20 @@ class Contraption(object):
 
     def random_x0_y0_on_top(self, w, h):
         xys_with_adjascent = set()
-        for x, y in self.footprint:
-            if x + w < self.X and y + h < self.Y:
-                xys_with_adjascent.add((x, y))
-                if self.space[x][y][0]:
-                    if x - 1 > 0:
-                        xys_with_adjascent.add((x - 1, y))
-                    if x + 1 < self.X:
-                        xys_with_adjascent.add((x + 1, y))
-                    if y - 1 > 0:
-                        xys_with_adjascent.add((x, y - 1))
-                    if y + 1 < self.Y:
-                        xys_with_adjascent.add((x, y + 1))
+        for xf, yf in self.footprint:
+            for x in range(xf-w+1, xf+1):
+                for y in range(yf-h+1, yf+1):
+                    if x + w < self.X and y + h < self.Y:
+                        xys_with_adjascent.add((x, y))
+                        if self.space[x][y][0]:
+                            if x - 1 > 0:
+                                xys_with_adjascent.add((x - 1, y))
+                            if x + 1 < self.X:
+                                xys_with_adjascent.add((x + 1, y))
+                            if y - 1 > 0:
+                                xys_with_adjascent.add((x, y - 1))
+                            if y + 1 < self.Y:
+                                xys_with_adjascent.add((x, y + 1))
         return random.choice(list(xys_with_adjascent))
 
     def randomly_place_brick_down(self, w, h):
@@ -181,11 +186,7 @@ class Contraption(object):
 
         else:
             w, h = self.randomly_flip_brick(w, h)
-            try:
-                x0, y0 = self.random_x0_y0_on_top(w, h)
-            except:
-                print('FUCK', w, h)
-                print('FUCK', self.footprint)
+            x0, y0 = self.random_x0_y0_on_top(w, h)
             z = self.max_z_in_area(x0, y0, x0+w, y0+h)
             self.place_brick(x0, y0, x0+w, y0+h, z+1)
 
@@ -284,7 +285,7 @@ if __name__ == '__main__':
     # DEBUG generate an aseembly and then render final image
     contraption = Contraption()
     contraption.randomly_assemble(bucket, n_pieces=20)
-    contraption.render()
+    contraption.render(width=1920, height=1080)
 
     # # DEBUG generate sequence of images during build
     # contraption = Contraption()
