@@ -202,7 +202,7 @@ class Contraption(object):
             self.place_brick(x0, y0, x0+w, y0+h, z+1)
 
     def randomly_assemble(self, bucket, n_pieces=10, verbose=False,
-                          render=False, **kwargs):
+                          render=False, filename_root="contraption-", **kwargs):
         for i in range(n_pieces):
             w, h = bucket.random_brick()
             self.randomly_place_brick_on_top(w, h)
@@ -210,7 +210,8 @@ class Contraption(object):
                 print("=" * 70, w, h)
                 print(contraption)
             if render:
-                self.render(filename="contraption-%03d.png" % i, **kwargs)
+                filename = filename_root + "%03d.png" % i
+                self.render(filename=filename, **kwargs)
 
     def center_of_mass(self):
         xc, yc, zc = 0.0, 0.0, 0.0
@@ -298,13 +299,13 @@ if __name__ == '__main__':
     # contraption.randomly_assemble(bucket, n_pieces=20)
     # contraption.render(width=1920, height=1080)
 
-    # DEBUG generate sequence of images during build
-    contraption = Contraption(monochrome=True)
-    # contraption.randomly_assemble(bucket, n_pieces=20, render=True)
-    contraption.randomly_assemble(bucket, n_pieces=20, render=True, width=1920, height=1080)
+    # # DEBUG generate sequence of images during build
+    # contraption = Contraption(monochrome=True)
+    # # contraption.randomly_assemble(bucket, n_pieces=20, render=True)
+    # contraption.randomly_assemble(bucket, n_pieces=20, render=True, width=1920, height=1080)
 
-    # # DEBUG print out many contraptions
-    # for i in range(10):
-    #     contraption = Contraption()
-    #     contraption.randomly_assemble(bucket, n_pieces=20)
-    #     contraption.render(filename="contraption-sm-%03d.png" % i)
+    # DEBUG print out many contraptions
+    for i in range(10):
+        contraption = Contraption()
+        contraption.randomly_assemble(bucket, n_pieces=20)
+        contraption.render(filename="contraption-sm-%03d.png" % i)
